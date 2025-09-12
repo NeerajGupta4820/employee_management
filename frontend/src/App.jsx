@@ -13,7 +13,7 @@
   import EditEmployeePage from './pages/EditEmployeePage';
   import UserProfilePage from './pages/UserProfilePage';
   import { AuthProvider } from './context/AuthContext';
-  import './App.css';
+  // import './App.css';
 
   function App() {
     return (
