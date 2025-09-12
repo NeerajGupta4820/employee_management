@@ -38,7 +38,7 @@ const LoginPage = () => {
       console.log('Calling API with username:', form.username, 'password:', form.password);
       const data = await request(form.username, form.password);
       console.log('API response:', data);
-      login(data.user, data.token);
+      login(data.user, data.access_token);
       console.log('Logged in, navigating to /');
       navigate('/');
     } catch (err) {
