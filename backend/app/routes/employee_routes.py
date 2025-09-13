@@ -2,7 +2,7 @@ from fastapi import APIRouter, HTTPException, Query, Depends, Request
 from app.schemas.employee_schema import EmployeeCreate, EmployeeUpdate
 from app.services.employee_service import (
     create_employee, get_employee, update_employee, delete_employee,
-    list_employees_by_department, average_salary_by_department, search_employee_by_skill,get_all_employees
+    list_employees_by_department, average_salary_by_department, search_employee_by_skill, get_all_employees
 )
 from app.services.auth_service import get_current_user
 
@@ -46,8 +46,28 @@ def delete_employee_route(employee_id: str):
     return {'message': 'Employee deleted'}
 
 @router.get('/')
-def list_by_department(department: str = Query(None), skip: int = 0, limit: int = 10):
-    return list_employees_by_department(department, skip, limit)
+def list_employees(
+    department: str = Query(None),
+    search: str = Query(None),
+    skip: int = 0,
+    limit: int = 10
+):
+    from app.config import db
+    query = {}
+    if department:
+        query['department'] = department
+    if search:
+        # Multi-field search: name, skills, department, salary, employee_id
+        search_regex = {"$regex": search, "$options": "i"}
+        query["$or"] = [
+            {"name": search_regex},
+            {"skills": search_regex},
+            {"department": search_regex},
+            {"employee_id": search_regex},
+            {"salary": {"$regex": search, "$options": "i"}} # salary as string
+        ]
+    cursor = db.employees.find(query, {"_id": 0}).sort("joining_date", -1).skip(skip).limit(limit)
+    return list(cursor)
 
 @router.get('/avg-salary', dependencies=[Depends(get_current_user)])
 def avg_salary():
