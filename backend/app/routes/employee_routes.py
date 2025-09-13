@@ -28,15 +28,10 @@ def get_employee_route(employee_id: str):
 
 @router.put('/{employee_id}', dependencies=[Depends(get_current_user)])
 async def update_employee_route(employee_id: str, request: Request):
-    print(f"[DEBUG] Update Employee API called for ID: {employee_id}")
     body = await request.json()
-    print(f"[DEBUG] Raw request body: {body}")
     try:
         emp = EmployeeUpdate(**body)
-        print(f"[DEBUG] Parsed EmployeeUpdate: {emp}")
-        print(f"[DEBUG] Parsed dict: {emp.dict()}")
     except Exception as e:
-        print(f"[DEBUG] Pydantic parse error: {e}")
         raise HTTPException(status_code=422, detail=f"Pydantic parse error: {str(e)}")
     count = update_employee(employee_id, emp)
     if count == 0:
