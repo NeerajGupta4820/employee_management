@@ -1,65 +1,110 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { FaEye, FaEdit, FaTrash, FaSearch, FaFrown, FaSync, FaFilter } from 'react-icons/fa';
 import Pagination from '../components/common/Pagination';
-import useEmployees from '../hooks/useEmployees';
 import EmployeeDetailModal from '../components/employees/EmployeeDetailModal';
 import EmployeeEditModal from '../components/employees/EmployeeEditModal';
-import { deleteEmployee } from '../services/employeeService';
+import { deleteEmployee, getAllEmployees } from '../services/employeeService';
 
 const EmployeeListPage = () => {
   const [filters, setFilters] = useState({});
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(1);
-  const [totalEmployees, setTotalEmployees] = useState(0);
-  const { employees: allEmployees, loading, error, refetch } = useEmployees(filters, page);
+  const [allEmployees, setAllEmployees] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [selectedEmployee, setSelectedEmployee] = useState(null);
   const [viewModalOpen, setViewModalOpen] = useState(false);
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
   
-  // Filter employees based on search input AND department filter
+  // Fetch all employees on component mount
+  useEffect(() => {
+    fetchAllEmployees();
+  }, []);
+
+  const fetchAllEmployees = async () => {
+    try {
+      setLoading(true);
+      const employees = await getAllEmployees({});
+      setAllEmployees(Array.isArray(employees) ? employees : []);
+      setError(null);
+    } catch (err) {
+      setError('Error loading employees. Please try again.');
+      console.error('Error fetching employees:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleRefresh = async () => {
+    setIsRefreshing(true);
+    await fetchAllEmployees();
+    setTimeout(() => setIsRefreshing(false), 500);
+  };
+
+  // Filter and search employees
   const filteredEmployees = useMemo(() => {
-    let result = allEmployees;
+    if (!allEmployees.length) return [];
     
-    // Apply department filter first
+    let result = [...allEmployees];
+    
+    // Apply department filter - case insensitive comparison
     if (filters.department) {
       result = result.filter(emp => 
-        emp.department?.toLowerCase() === filters.department.toLowerCase()
+        emp.department && emp.department.toLowerCase() === filters.department.toLowerCase()
       );
     }
     
-    // Then apply search filter
+    // Apply search filter
     if (search) {
       const searchTerm = search.toLowerCase();
       result = result.filter(emp => 
-        emp.name?.toLowerCase().includes(searchTerm) ||
-        emp.department?.toLowerCase().includes(searchTerm) ||
-        (emp.skills && emp.skills.some(skill => skill.toLowerCase().includes(searchTerm))) ||
-        emp.employee_id?.toLowerCase().includes(searchTerm) ||
-        emp.salary?.toString().includes(searchTerm)
+        (emp.name && emp.name.toLowerCase().includes(searchTerm)) ||
+        (emp.employee_id && emp.employee_id.toLowerCase().includes(searchTerm)) ||
+        (emp.department && emp.department.toLowerCase().includes(searchTerm)) ||
+        (emp.salary && emp.salary.toString().includes(searchTerm)) ||
+        (emp.skills && Array.isArray(emp.skills) && 
+          emp.skills.some(skill => skill.toLowerCase().includes(searchTerm)))
       );
     }
     
     return result;
-  }, [allEmployees, search, filters.department]);
+  }, [allEmployees, filters, search]);
 
-  // Fetch total employees for pagination
-  React.useEffect(() => {
-    const fetchTotal = async () => {
-      try {
-        let res;
-        if (Object.keys(filters).length === 0) {
-          res = await import('../services/employeeService').then(mod => mod.getAllEmployees({ skip: 0, limit: 10000 }));
-        } else {
-          res = await import('../services/employeeService').then(mod => mod.getEmployees({ ...filters, skip: 0, limit: 10000 }));
+  // Paginate the filtered results
+  const itemsPerPage = 10;
+  const totalEmployees = filteredEmployees.length;
+  const totalPages = Math.max(1, Math.ceil(totalEmployees / itemsPerPage));
+  
+  // Ensure page doesn't exceed total pages
+  useEffect(() => {
+    if (page > totalPages) {
+      setPage(1);
+    }
+  }, [page, totalPages]);
+
+  const paginatedEmployees = useMemo(() => {
+    const startIndex = (page - 1) * itemsPerPage;
+    return filteredEmployees.slice(startIndex, startIndex + itemsPerPage);
+  }, [filteredEmployees, page, itemsPerPage]);
+
+  // Extract unique departments from allEmployees for dropdown - case insensitive grouping
+  const departmentOptions = useMemo(() => {
+    const deptMap = new Map();
+    
+    allEmployees.forEach(emp => {
+      if (emp.department) {
+        // Use lowercase as key to group case variations
+        const lowerCaseDept = emp.department.toLowerCase();
+        if (!deptMap.has(lowerCaseDept)) {
+          // Store the first occurrence's case as the display value
+          deptMap.set(lowerCaseDept, emp.department);
         }
-        setTotalEmployees(Array.isArray(res) ? res.length : 0);
-      } catch (err) {
-        setTotalEmployees(0);
       }
-    };
-    fetchTotal();
-  }, [filters, allEmployees]);
+    });
+    
+    return Array.from(deptMap.values()).sort();
+  }, [allEmployees]);
 
   const handleView = (emp) => {
     setSelectedEmployee(emp);
@@ -76,7 +121,7 @@ const EmployeeListPage = () => {
       try {
         await deleteEmployee(emp.employee_id);
         alert('Employee deleted successfully!');
-        refetch(); // Refresh the list
+        fetchAllEmployees(); // Refresh the list
       } catch (error) {
         alert('Error deleting employee: ' + (error?.response?.data?.detail || error?.message));
       }
@@ -84,13 +129,7 @@ const EmployeeListPage = () => {
   };
 
   const handleUpdateSuccess = () => {
-    refetch(); // Refresh the list after update
-  };
-
-  const handleRefresh = async () => {
-    setIsRefreshing(true);
-    await refetch();
-    setTimeout(() => setIsRefreshing(false), 500);
+    fetchAllEmployees(); // Refresh the list after update
   };
 
   const closeModals = () => {
@@ -104,15 +143,6 @@ const EmployeeListPage = () => {
     setSearch('');
     setPage(1);
   };
-
-  // Calculate total pages based on filtered employees
-  const totalPages = Math.max(1, Math.ceil(filteredEmployees.length / 10));
-
-  // Paginate filtered employees
-  const paginatedEmployees = useMemo(() => {
-    const startIndex = (page - 1) * 10;
-    return filteredEmployees.slice(startIndex, startIndex + 10);
-  }, [filteredEmployees, page]);
 
   return (
     <div className="w-[85vw] mx-auto mt-10 bg-white p-4 sm:p-6 md:p-8 rounded-lg shadow-lg font-sans">
@@ -163,12 +193,9 @@ const EmployeeListPage = () => {
               className="border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 min-w-[150px]"
             >
               <option value="">All Departments</option>
-              <option value="Engineering">Engineering</option>
-              <option value="HR">HR</option>
-              <option value="Sales">Sales</option>
-              <option value="Marketing">Marketing</option>
-              <option value="Finance">Finance</option>
-              <option value="Operations">Operations</option>
+              {departmentOptions.map(dept => (
+                <option key={dept} value={dept}>{dept}</option>
+              ))}
             </select>
           </div>
           
@@ -242,7 +269,7 @@ const EmployeeListPage = () => {
               </svg>
             </div>
             <div className="ml-3">
-              <p className="text-sm text-red-700">Error loading employees. Please try again.</p>
+              <p className="text-sm text-red-700">{error}</p>
             </div>
           </div>
         </div>
@@ -387,9 +414,13 @@ const EmployeeListPage = () => {
         </div>
       </div>
 
-      {!loading && paginatedEmployees.length > 0 && (
+      {!loading && filteredEmployees.length > 0 && (
         <div className="mt-8 flex justify-center">
-          <Pagination currentPage={page} totalPages={totalPages} onPageChange={setPage} />
+          <Pagination 
+            currentPage={page} 
+            totalPages={totalPages} 
+            onPageChange={setPage} 
+          />
         </div>
       )}
 

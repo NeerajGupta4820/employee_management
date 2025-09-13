@@ -1,23 +1,19 @@
 import { useState, useEffect } from 'react';
 import { getEmployees, getAllEmployees } from '../services/employeeService';
 
-const useEmployees = (filters, page) => {
+const useEmployees = (filters, page, itemsPerPage = 10) => {
   const [employees, setEmployees] = useState([]);
+  const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
   const fetchEmployees = async () => {
     try {
       setLoading(true);
-      let data;
-      
-      if (Object.keys(filters).length === 0) {
-        data = await getAllEmployees({ skip: (page - 1) * 10, limit: 10 });
-      } else {
-        data = await getEmployees({ ...filters, skip: (page - 1) * 10, limit: 10 });
-      }
-      
-      setEmployees(data);
+      // Always use /employees endpoint for paginated, filtered, searched data
+      const data = await getEmployees({ ...filters, skip: (page - 1) * itemsPerPage, limit: itemsPerPage });
+      setEmployees(data.employees || []);
+      setTotal(data.total || 0);
       setError(null);
     } catch (err) {
       setError(err);
@@ -29,9 +25,9 @@ const useEmployees = (filters, page) => {
 
   useEffect(() => {
     fetchEmployees();
-  }, [filters, page]);
+  }, [filters, page, itemsPerPage]);
 
-  return { employees, loading, error, refetch: fetchEmployees };
+  return { employees, total, loading, error, refetch: fetchEmployees };
 };
 
 export default useEmployees;

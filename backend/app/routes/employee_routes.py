@@ -45,6 +45,7 @@ def delete_employee_route(employee_id: str):
         raise HTTPException(status_code=404, detail='Employee not found')
     return {'message': 'Employee deleted'}
 
+
 @router.get('/')
 def list_employees(
     department: str = Query(None),
@@ -57,17 +58,18 @@ def list_employees(
     if department:
         query['department'] = department
     if search:
-        # Multi-field search: name, skills, department, salary, employee_id
         search_regex = {"$regex": search, "$options": "i"}
         query["$or"] = [
             {"name": search_regex},
             {"skills": search_regex},
             {"department": search_regex},
             {"employee_id": search_regex},
-            {"salary": {"$regex": search, "$options": "i"}} # salary as string
+            {"salary": {"$regex": search, "$options": "i"}}
         ]
+    total_count = db.employees.count_documents(query)
     cursor = db.employees.find(query, {"_id": 0}).sort("joining_date", -1).skip(skip).limit(limit)
-    return list(cursor)
+    employees = list(cursor)
+    return {"employees": employees, "total": total_count}
 
 @router.get('/avg-salary', dependencies=[Depends(get_current_user)])
 def avg_salary():
