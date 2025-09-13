@@ -12,6 +12,7 @@
   import AddEmployeePage from './pages/AddEmployeePage';
   import EditEmployeePage from './components/employees/EmployeeDetailModal';
   import UserProfilePage from './pages/UserProfilePage';
+  import DepartmentAverageSalaryPage from './pages/DepartmentAverageSalaryPage';
   import { AuthProvider } from './context/AuthContext';
   // import './App.css';
 
@@ -32,6 +33,7 @@
                 <Route path="/add-employee" element={<ProtectedRoute><AddEmployeePage /></ProtectedRoute>} />
                 <Route path="/employees/:id/edit" element={<ProtectedRoute><EditEmployeePage /></ProtectedRoute>} />
                 <Route path="/profile" element={<ProtectedRoute><UserProfilePage /></ProtectedRoute>} />
+                  <Route path="/department-average-salary" element={<ProtectedRoute><DepartmentAverageSalaryPage /></ProtectedRoute>} />
               </Routes>
             </main>
             <Footer />

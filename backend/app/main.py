@@ -3,6 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.routes.employee_routes import router as employee_router
 from app.routes.user_routes import router as user_router
 from app.routes.auth_routes import router as auth_router
+from app.routes.department_routes import router as department_router
 
 app = FastAPI(
     title="Employee Management API",
@@ -23,6 +24,7 @@ app.add_middleware(
 app.include_router(auth_router)
 app.include_router(employee_router)
 app.include_router(user_router)
+app.include_router(department_router)
 
 # Root endpoint for health check
 @app.get("/")

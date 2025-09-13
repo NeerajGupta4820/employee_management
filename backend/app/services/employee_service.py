@@ -29,8 +29,28 @@ def list_employees_by_department(department: str, skip: int = 0, limit: int = 10
 
 def average_salary_by_department():
     pipeline = [
-        {"$group": {"_id": "$department", "avg_salary": {"$avg": "$salary"}}},
-        {"$project": {"department": "$_id", "avg_salary": 1, "_id": 0}}
+        {
+            "$addFields": {
+                "department_upper": {"$toUpper": "$department"}
+            }
+        },
+        {
+            "$group": {
+                "_id": "$department_upper",
+                "avg_salary": {"$avg": "$salary"},
+                "original_department": {"$first": "$department"}  # Keep the original case for display
+            }
+        },
+        {
+            "$project": {
+                "department": "$original_department",
+                "avg_salary": 1,
+                "_id": 0
+            }
+        },
+        {
+            "$sort": {"department": 1}  # Optional: sort by department name
+        }
     ]
     return list(db.employees.aggregate(pipeline))
 

@@ -35,6 +35,14 @@ const Navbar = () => {
             >
               Employees
             </Link>
+            <Link
+              to="/department-average-salary"
+              className={`px-3 py-2 rounded-md text-sm font-medium ${
+                isActive('/department-average-salary') ? 'bg-blue-50 text-blue-700' : 'text-gray-600 hover:bg-gray-100'
+              }`}
+            >
+              Department
+            </Link>
             {user && (
               <Link
                 to="/add-employee"

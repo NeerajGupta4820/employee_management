@@ -2,7 +2,7 @@ from fastapi import APIRouter, HTTPException, Query, Depends, Request
 from app.schemas.employee_schema import EmployeeCreate, EmployeeUpdate
 from app.services.employee_service import (
     create_employee, get_employee, update_employee, delete_employee,
-    list_employees_by_department, average_salary_by_department, search_employee_by_skill, get_all_employees
+    list_employees_by_department, search_employee_by_skill, get_all_employees
 )
 from app.services.auth_service import get_current_user
 
@@ -70,10 +70,6 @@ def list_employees(
     cursor = db.employees.find(query, {"_id": 0}).sort("joining_date", -1).skip(skip).limit(limit)
     employees = list(cursor)
     return {"employees": employees, "total": total_count}
-
-@router.get('/avg-salary', dependencies=[Depends(get_current_user)])
-def avg_salary():
-    return average_salary_by_department()
 
 @router.get('/search', dependencies=[Depends(get_current_user)])
 def search_by_skill(skill: str = Query(...)):

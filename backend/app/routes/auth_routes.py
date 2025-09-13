@@ -1,4 +1,3 @@
-print("Loading auth_routes.py")
 from fastapi import APIRouter, HTTPException, status, Depends
 from fastapi.security import OAuth2PasswordRequestForm
 from app.schemas.user_schema import UserCreate, UserLogin
