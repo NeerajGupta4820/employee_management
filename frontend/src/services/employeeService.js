@@ -41,6 +41,6 @@ export const deleteEmployee = async (id) => {
 // export default { getEmployees, getAllEmployees, getEmployee, createEmployee, updateEmployee, deleteEmployee };
 // Get department average salaries
 export const getDepartmentAverageSalaries = async () => {
-  const response = await api.get('/department/avg-salary');
+  const response = await api.get('/employees/avg-salary');
   return response.data;
 };

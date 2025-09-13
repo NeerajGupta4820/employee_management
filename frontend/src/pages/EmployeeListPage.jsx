@@ -16,7 +16,11 @@ const EmployeeListPage = () => {
   const [viewModalOpen, setViewModalOpen] = useState(false);
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
-  
+  // New state for delete confirmation modal
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [employeeToDelete, setEmployeeToDelete] = useState(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+
   // Fetch all employees on component mount
   useEffect(() => {
     fetchAllEmployees();
@@ -116,26 +120,54 @@ const EmployeeListPage = () => {
     setEditModalOpen(true);
   };
 
-  const handleDelete = async (emp) => {
-    if (window.confirm(`Are you sure you want to delete ${emp.name}?`)) {
-      try {
-        await deleteEmployee(emp.employee_id);
-        alert('Employee deleted successfully!');
-        fetchAllEmployees(); // Refresh the list
-      } catch (error) {
-        alert('Error deleting employee: ' + (error?.response?.data?.detail || error?.message));
-      }
+  // Updated handleDelete to open custom modal
+  const handleDelete = (emp) => {
+    console.log('Delete button clicked for employee:', emp.employee_id);
+    if (!emp.employee_id) {
+      alert('Cannot delete: Employee ID is missing.');
+      return;
+    }
+    setEmployeeToDelete(emp);
+    setDeleteModalOpen(true);
+  };
+
+  // New function to confirm deletion
+  const confirmDelete = async () => {
+    if (!employeeToDelete) return;
+    setIsDeleting(true);
+    try {
+      console.log('Calling deleteEmployee with ID:', employeeToDelete.employee_id);
+      await deleteEmployee(employeeToDelete.employee_id);
+      console.log('Employee deleted successfully');
+      alert('Employee deleted successfully!');
+      await fetchAllEmployees();
+    } catch (error) {
+      console.error('Error in confirmDelete:', {
+        message: error.message,
+        response: error.response ? {
+          status: error.response.status,
+          data: error.response.data,
+        } : null,
+      });
+      alert('Error deleting employee: ' + (error?.response?.data?.detail || error?.message));
+    } finally {
+      setIsDeleting(false);
+      setDeleteModalOpen(false);
+      setEmployeeToDelete(null);
     }
   };
 
   const handleUpdateSuccess = () => {
-    fetchAllEmployees(); // Refresh the list after update
+    fetchAllEmployees();
   };
 
+  // Updated closeModals to handle delete modal
   const closeModals = () => {
     setViewModalOpen(false);
     setEditModalOpen(false);
+    setDeleteModalOpen(false);
     setSelectedEmployee(null);
+    setEmployeeToDelete(null);
   };
 
   const clearFilters = () => {
@@ -318,7 +350,8 @@ const EmployeeListPage = () => {
                         </button>
                         <button
                           onClick={() => handleDelete(emp)}
-                          className="text-red-600 hover:text-red-800 p-2 rounded-lg hover:bg-red-100 transition-colors"
+                          disabled={loading || isDeleting}
+                          className="text-red-600 hover:text-red-800 p-2 rounded-lg hover:bg-red-100 transition-colors disabled:opacity-50"
                           title="Delete"
                         >
                           <FaTrash size={16} />
@@ -390,7 +423,8 @@ const EmployeeListPage = () => {
                     </button>
                     <button 
                       onClick={() => handleDelete(emp)} 
-                      className="text-red-600 hover:text-red-800 transition-colors p-2 rounded-lg hover:bg-red-100"
+                      disabled={loading || isDeleting}
+                      className="text-red-600 hover:text-red-800 transition-colors p-2 rounded-lg hover:bg-red-100 disabled:opacity-50"
                       title="Delete"
                     >
                       <FaTrash size={16} />
@@ -438,6 +472,36 @@ const EmployeeListPage = () => {
           onClose={closeModals}
           onUpdate={handleUpdateSuccess}
         />
+      )}
+
+      {/* New Delete Confirmation Modal */}
+      {deleteModalOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-md">
+            <h3 className="text-lg font-semibold text-gray-800 mb-4">
+              Confirm Delete
+            </h3>
+            <p className="text-gray-600 mb-6">
+              Are you sure you want to delete {employeeToDelete?.name} (ID: {employeeToDelete?.employee_id})?
+            </p>
+            <div className="flex justify-end space-x-4">
+              <button
+                onClick={closeModals}
+                disabled={isDeleting}
+                className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmDelete}
+                disabled={isDeleting}
+                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50"
+              >
+                {isDeleting ? 'Deleting...' : 'Delete'}
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

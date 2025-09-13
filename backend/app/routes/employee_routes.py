@@ -2,7 +2,7 @@ from fastapi import APIRouter, HTTPException, Query, Depends, Request
 from app.schemas.employee_schema import EmployeeCreate, EmployeeUpdate
 from app.services.employee_service import (
     create_employee, get_employee, update_employee, delete_employee,
-    list_employees_by_department, search_employee_by_skill, get_all_employees
+    average_salary_by_department, search_employee_by_skill, get_all_employees
 )
 from app.services.auth_service import get_current_user
 
@@ -18,6 +18,10 @@ def create_employee_route(emp: EmployeeCreate):
     if not emp_id:
         raise HTTPException(status_code=400, detail='Employee ID already exists')
     return {'message': 'Employee created', 'id': emp_id}
+
+@router.get('/avg-salary')
+def get_avg_salary():
+    return average_salary_by_department()
 
 @router.get('/{employee_id}')
 def get_employee_route(employee_id: str):
@@ -44,32 +48,6 @@ def delete_employee_route(employee_id: str):
     if count == 0:
         raise HTTPException(status_code=404, detail='Employee not found')
     return {'message': 'Employee deleted'}
-
-
-@router.get('/')
-def list_employees(
-    department: str = Query(None),
-    search: str = Query(None),
-    skip: int = 0,
-    limit: int = 10
-):
-    from app.config import db
-    query = {}
-    if department:
-        query['department'] = department
-    if search:
-        search_regex = {"$regex": search, "$options": "i"}
-        query["$or"] = [
-            {"name": search_regex},
-            {"skills": search_regex},
-            {"department": search_regex},
-            {"employee_id": search_regex},
-            {"salary": {"$regex": search, "$options": "i"}}
-        ]
-    total_count = db.employees.count_documents(query)
-    cursor = db.employees.find(query, {"_id": 0}).sort("joining_date", -1).skip(skip).limit(limit)
-    employees = list(cursor)
-    return {"employees": employees, "total": total_count}
 
 @router.get('/search', dependencies=[Depends(get_current_user)])
 def search_by_skill(skill: str = Query(...)):
