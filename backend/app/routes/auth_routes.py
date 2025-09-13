@@ -4,17 +4,15 @@ from fastapi.security import OAuth2PasswordRequestForm
 from app.schemas.user_schema import UserCreate, UserLogin
 from app.services.user_service import create_user, get_user_by_username
 from app.services.auth_service import authenticate_user, create_access_token, get_current_user
-print("Loading auth_routes.py neeraj")
+
 
 router = APIRouter(prefix="/auth", tags=["Auth"])
 
-print("Loading auth_routes.py neeraj ji")
+
 @router.post("/signup", status_code=status.HTTP_201_CREATED)
 def signup(user: UserCreate):
     try:
-        print(f"Signup called with user: {user}")
         user_id = create_user(user)
-        print(f"create_user returned: {user_id}")
         if not user_id:
             raise HTTPException(status_code=400, detail="Username already exists")
         return {"message": "User created successfully", "user_id": user_id}

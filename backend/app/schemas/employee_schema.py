@@ -13,8 +13,8 @@ class EmployeeCreate(EmployeeBase):
     pass
 
 class EmployeeUpdate(BaseModel):
-    name: Optional[str]
-    department: Optional[str]
-    salary: Optional[float]
-    joining_date: Optional[str]
-    skills: Optional[List[str]]
+    name: Optional[str] = None
+    department: Optional[str] = None
+    salary: Optional[float] = None
+    joining_date: Optional[str] = None
+    skills: Optional[List[str]] = None

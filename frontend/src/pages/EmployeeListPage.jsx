@@ -15,7 +15,6 @@ const EmployeeListPage = () => {
   const [selectedEmployee, setSelectedEmployee] = useState(null);
   const [viewModalOpen, setViewModalOpen] = useState(false);
   const [editModalOpen, setEditModalOpen] = useState(false);
-  console.log(employees)
   // Fetch total employees for pagination
   React.useEffect(() => {
     const fetchTotal = async () => {

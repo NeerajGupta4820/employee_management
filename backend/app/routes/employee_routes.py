@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, Query, Depends
+from fastapi import APIRouter, HTTPException, Query, Depends, Request
 from app.schemas.employee_schema import EmployeeCreate, EmployeeUpdate
 from app.services.employee_service import (
     create_employee, get_employee, update_employee, delete_employee,
@@ -27,7 +27,17 @@ def get_employee_route(employee_id: str):
     return emp
 
 @router.put('/{employee_id}', dependencies=[Depends(get_current_user)])
-def update_employee_route(employee_id: str, emp: EmployeeUpdate):
+async def update_employee_route(employee_id: str, request: Request):
+    print(f"[DEBUG] Update Employee API called for ID: {employee_id}")
+    body = await request.json()
+    print(f"[DEBUG] Raw request body: {body}")
+    try:
+        emp = EmployeeUpdate(**body)
+        print(f"[DEBUG] Parsed EmployeeUpdate: {emp}")
+        print(f"[DEBUG] Parsed dict: {emp.dict()}")
+    except Exception as e:
+        print(f"[DEBUG] Pydantic parse error: {e}")
+        raise HTTPException(status_code=422, detail=f"Pydantic parse error: {str(e)}")
     count = update_employee(employee_id, emp)
     if count == 0:
         raise HTTPException(status_code=404, detail='Employee not found')

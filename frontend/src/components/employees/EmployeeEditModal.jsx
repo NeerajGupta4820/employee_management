@@ -45,8 +45,6 @@ const EmployeeEditModal = ({ employee, onClose, onUpdate }) => {
         setLoading(false);
         return;
       }
-
-      console.log('Sending update data:', updatedData);
       
       await updateEmployee(employee.employee_id, updatedData);
       onUpdate();

@@ -22,7 +22,14 @@ export const createEmployee = async (data) => {
 };
 
 export const updateEmployee = async (id, data) => {
-  const response = await api.put(`/employees/${id}`, data);
+  // Remove empty string fields before sending to backend
+  const filteredData = {};
+  Object.keys(data).forEach(key => {
+    if (data[key] !== '' && data[key] !== undefined && data[key] !== null) {
+      filteredData[key] = data[key];
+    }
+  });
+  const response = await api.put(`/employees/${id}`, filteredData);
   return response.data;
 };
 
