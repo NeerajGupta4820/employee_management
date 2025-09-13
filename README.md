@@ -46,6 +46,16 @@ employee_management/
 
 ## 🖼️ Images
 <!-- Add screenshots or architecture diagrams here -->
+1. HomePage 
+<img width="1919" height="907" alt="image" src="https://github.com/user-attachments/assets/c7fb22c5-d0a6-44e7-b74b-362f579eb1a5" />
+2.EmployeeList
+<img width="1916" height="918" alt="image" src="https://github.com/user-attachments/assets/4e5f64c6-c5e6-4117-bef2-fd83a416073f" />
+3. Department average salary
+<img width="1919" height="913" alt="image" src="https://github.com/user-attachments/assets/c1164d9e-378d-4b64-8d26-5f9b0ce4d8c8" />
+4. add Employee
+<img width="1918" height="907" alt="image" src="https://github.com/user-attachments/assets/44833064-b0f4-4f60-af58-c62b15c8eab1" />
+5. Employee management api
+<img width="1914" height="909" alt="image" src="https://github.com/user-attachments/assets/cd570b21-2a85-4f00-9aa2-09978d89a092" />
 
 ---
 
