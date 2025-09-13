@@ -52,7 +52,7 @@ const LoginPage = () => {
       <h2 className="text-2xl font-bold mb-6 text-gray-800">Login</h2>
       <form onSubmit={handleSubmit} className="space-y-6">
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Username</label>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Username or Email</label>
           <input
             name="username"
             type="text"

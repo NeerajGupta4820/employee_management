@@ -1,4 +1,4 @@
-from app.services.user_service import get_user_by_username
+from app.services.user_service import get_user_by_username_or_email  # Updated import
 from passlib.context import CryptContext
 from jose import JWTError, jwt
 from fastapi import Depends, HTTPException, status
@@ -23,8 +23,8 @@ def create_access_token(data: dict, expires_delta: timedelta = None):
 def verify_password(plain_password, hashed_password):
     return pwd_context.verify(plain_password, hashed_password)
 
-def authenticate_user(username: str, password: str):
-    user = get_user_by_username(username)
+def authenticate_user(identifier: str, password: str):  # Changed parameter name from username to identifier
+    user = get_user_by_username_or_email(identifier)  # Use the new function
     if not user:
         return False
     if not verify_password(password, user["password_hash"]):
@@ -44,7 +44,7 @@ def get_current_user(token: str = Depends(oauth2_scheme)):
             raise credentials_exception
     except JWTError:
         raise credentials_exception
-    user = get_user_by_username(username)
+    user = get_user_by_username_or_email(username)  # Use the new function here too
     if user is None:
         raise credentials_exception
     return user
