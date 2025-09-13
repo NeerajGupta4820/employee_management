@@ -1,6 +1,6 @@
   import React from 'react';
   import { BrowserRouter, Routes, Route } from 'react-router-dom';
-  import Header from './components/common/Header';
+  // import Header from './components/common/Header';
   import Footer from './components/common/Footer';
   import Navbar from './components/common/Navbar';
   import ProtectedRoute from './components/common/ProtectedRoute';
@@ -8,9 +8,9 @@
   import LoginPage from './pages/LoginPage';
   import SignupPage from './pages/SignupPage';
   import EmployeeListPage from './pages/EmployeeListPage';
-  import EmployeeDetailPage from './pages/EmployeeDetailPage';
+  import EmployeeDetailPage from './components/employees/EmployeeEditModal';
   import AddEmployeePage from './pages/AddEmployeePage';
-  import EditEmployeePage from './pages/EditEmployeePage';
+  import EditEmployeePage from './components/employees/EmployeeDetailModal';
   import UserProfilePage from './pages/UserProfilePage';
   import { AuthProvider } from './context/AuthContext';
   // import './App.css';
@@ -21,7 +21,7 @@
         <AuthProvider>
           <div className="flex flex-col min-h-screen bg-gray-50">
             <Navbar />
-            <Header />
+            {/* <Header /> */}
             <main className="flex-1">
               <Routes>
                 <Route path="/" element={<DashboardPage />} />
